@@ -25,6 +25,7 @@
 package org.slf4j;
 
 import java.io.IOException;
+import java.lang.invoke.MethodHandles;
 import java.net.URL;
 import java.util.ArrayList;
 import java.util.Arrays;
@@ -33,7 +34,6 @@ import java.util.Iterator;
 import java.util.LinkedHashSet;
 import java.util.List;
 import java.util.ServiceConfigurationError;
-import java.util.ServiceLoader;
 import java.util.Set;
 import java.util.concurrent.LinkedBlockingQueue;
 
@@ -43,6 +43,7 @@ import org.slf4j.helpers.SubstituteLogger;
 import org.slf4j.helpers.SubstituteServiceProvider;
 import org.slf4j.helpers.Util;
 import org.slf4j.spi.SLF4JServiceProvider;
+import org.slf4j.spi.ServiceLoaderUtil;
 
 /**
  * The <code>LoggerFactory</code> is a utility class producing Loggers for
@@ -101,16 +102,19 @@ public final class LoggerFactory {
 
     // Package access for tests
     static List<SLF4JServiceProvider> findServiceProviders() {
+        List<SLF4JServiceProvider> PROVIDERS = new ArrayList<>(1);
+        ServiceLoaderUtil.loadServices(SLF4JServiceProvider.class, MethodHandles.lookup(),false).forEach(PROVIDERS::add);
+        return PROVIDERS;
         // retain behaviour similar to that of 1.7 series and earlier. More specifically, use the class loader that
         // loaded the present class to search for services
-        final ClassLoader classLoaderOfLoggerFactory = LoggerFactory.class.getClassLoader();
-        ServiceLoader<SLF4JServiceProvider> serviceLoader = ServiceLoader.load(SLF4JServiceProvider.class, classLoaderOfLoggerFactory);
-        List<SLF4JServiceProvider> providerList = new ArrayList<>();
-        Iterator<SLF4JServiceProvider> iterator = serviceLoader.iterator();
-        while (iterator.hasNext()) {
-            safelyInstantiate(providerList, iterator);
-        }
-        return providerList;
+//        final ClassLoader classLoaderOfLoggerFactory = LoggerFactory.class.getClassLoader();
+//        ServiceLoader<SLF4JServiceProvider> serviceLoader = ServiceLoader.load(SLF4JServiceProvider.class, classLoaderOfLoggerFactory);
+//        List<SLF4JServiceProvider> providerList = new ArrayList<>();
+//        Iterator<SLF4JServiceProvider> iterator = serviceLoader.iterator();
+//        while (iterator.hasNext()) {
+//            safelyInstantiate(providerList, iterator);
+//        }
+//        return providerList;
     }
 
     private static void safelyInstantiate(List<SLF4JServiceProvider> providerList, Iterator<SLF4JServiceProvider> iterator) {
